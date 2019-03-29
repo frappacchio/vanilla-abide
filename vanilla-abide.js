@@ -18,6 +18,12 @@ class Abide {
     this.init();
   }
 
+
+  static factory(element) {
+    return new Abide(element, options);
+  }
+
+
   /**
    * Initializes the Abide plugin and calls functions to get Abide functioning on load.
    * @private
@@ -701,8 +707,9 @@ Abide.defaults = {
 
     // Domain || URL
     website: {
-      test: text => Abide.defaults.patterns.domain.test(text)
-        || || Abide.defaults.patterns.url.test(text),
+      test: text => Abide.defaults.patterns.domain.test(text) ||
+        ||
+        Abide.defaults.patterns.url.test(text),
     },
   },
 
@@ -723,4 +730,3 @@ Abide.defaults = {
   },
 };
 export default Abide;
-
