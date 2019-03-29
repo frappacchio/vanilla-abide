@@ -26,7 +26,6 @@ class Abide {
 
   /**
    * Initializes the Abide plugin and calls functions to get Abide functioning on load.
-   * @private
    */
   init() {
     const inputs = [].slice.call(this.$element.querySelectorAll('input:not([type="submit"])'));
@@ -45,7 +44,6 @@ class Abide {
 
   /**
    * Initializes events for Abide.
-   * @private
    */
   events() {
     this.$element.addEventListener('reset', () => {
@@ -54,12 +52,6 @@ class Abide {
     this.$element.addEventListener('submit', (event) => {
       event.preventDefault();
       this.validateForm();
-    });
-    this.$element.addEventListener('formValid', () => {
-      console.log('Form Valid');
-    });
-    this.$element.addEventListener('formInvalid', () => {
-      console.log('Form Invalid');
     });
     if (this.options.validateOn === 'fieldChange') {
       this.$inputs.forEach((input) => {
@@ -225,12 +217,14 @@ class Abide {
     const $label = this.findLabel($el);
     const $formError = this.findFormError($el);
 
-    if ($label.length) {
+    if ($label) {
       $label.classList.add(this.options.labelErrorClass);
     }
 
     if ($formError.length) {
-      $formError.classList.add(this.options.formErrorClass);
+      $formError.forEach((form) => {
+        form.classList.add(this.options.formErrorClass);
+      });
     }
 
     $el.classList.add(this.options.inputErrorClass);
@@ -397,7 +391,6 @@ class Abide {
 
 
     const goodToGo = [clearRequire, validated, customValidator, equalTo].indexOf(false) === -1;
-    const message = `${goodToGo ? 'valid' : 'invalid'}.zf.abide`;
 
     if (goodToGo) {
       // Re-validate inputs that depend on this one with equalto
@@ -495,7 +488,7 @@ class Abide {
 
     // For the group to be required, at least one radio needs to be required
     $group.forEach((e) => {
-      if (e.getAttribute('required')) {
+      if (e.hasAttribute('required')) {
         required = true;
       }
     });
