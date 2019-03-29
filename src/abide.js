@@ -19,7 +19,7 @@ class Abide {
   }
 
 
-  static factory(element) {
+  static factory(element, options) {
     return new Abide(element, options);
   }
 

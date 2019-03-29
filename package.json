@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "description": "A VanillaJS translation for Foundation Abide Form Validation",
   "main": "vanilla-abide.js",
-  "scripts": {},
+  "scripts": {
+    "dev": "webpack-dev-server --config webpack-dev.js",
+    "build": "webpack --config webpack-prod.js",
+    "lint": "node_modules/.bin/eslint ./src"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/frappacchio/vanilla-abide.git"
@@ -28,6 +32,9 @@
     "eslint": "^5.15.3",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-compat": "^3.1.0",
-    "eslint-plugin-import": "^2.16.0"
+    "eslint-plugin-import": "^2.16.0",
+    "webpack": "^4.29.6",
+    "webpack-dev-server": "^3.2.1",
+    "webpack-merge": "^4.2.1"
   }
 }
