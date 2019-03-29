@@ -707,9 +707,8 @@ Abide.defaults = {
 
     // Domain || URL
     website: {
-      test: text => Abide.defaults.patterns.domain.test(text) ||
-        ||
-        Abide.defaults.patterns.url.test(text),
+      test: text => Abide.defaults.patterns.domain.test(text)
+        || Abide.defaults.patterns.url.test(text),
     },
   },
 
