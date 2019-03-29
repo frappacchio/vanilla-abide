@@ -1,13 +1,13 @@
 class Abide {
   /**
-     * Creates a new instance of Abide.
-     * @class
-     * @name Abide
-     * @fires Abide#init
-     * @param {Element} element - DOM Element to add the trigger to.
-     * @param {Object} options - Overrides to the default plugin settings.
-     */
-  setup(element, options = {}) {
+   * Creates a new instance of Abide.
+   * @class
+   * @name Abide
+   * @fires Abide#init
+   * @param {Element} element - DOM Element to add the trigger to.
+   * @param {Object} options - Overrides to the default plugin settings.
+   */
+  constructor(element, options = {}) {
     this.$element = element;
     this.options = {
       ...Abide.defaults,
@@ -19,9 +19,9 @@ class Abide {
   }
 
   /**
-     * Initializes the Abide plugin and calls functions to get Abide functioning on load.
-     * @private
-     */
+   * Initializes the Abide plugin and calls functions to get Abide functioning on load.
+   * @private
+   */
   init() {
     const inputs = [].slice.call(this.$element.querySelectorAll('input:not([type="submit"])'));
     const selectAndTextArea = [].slice.call(this.$element.querySelectorAll('textarea,select'));
@@ -38,46 +38,50 @@ class Abide {
   }
 
   /**
-     * Initializes events for Abide.
-     * @private
-     */
+   * Initializes events for Abide.
+   * @private
+   */
   events() {
-    this.$element.off('.abide')
-      .on('reset.zf.abide', () => {
-        this.resetForm();
-      })
-      .on('submit.zf.abide', () => this.validateForm());
-
+    this.$element.removeEventListener('reset.zf.abide');
+    this.$element.addEventListener('reset.zf.abide', () => {
+      this.resetForm();
+    });
+    this.$element.addEventListener('submit.zf.abide', () => {
+      this.validateForm();
+    });
     if (this.options.validateOn === 'fieldChange') {
-      this.$inputs
-        .off('change.zf.abide')
-        .on('change.zf.abide', (e) => {
-          this.validateInput($(e.target));
+      this.$inputs.forEach((input) => {
+        input.removeEventListener('change.zf.abide');
+        input.addEventListener('change.zf.abide', (event) => {
+          this.validateInput(event.currentTarget);
         });
+      });
     }
 
     if (this.options.liveValidate) {
-      this.$inputs
-        .off('input.zf.abide')
-        .on('input.zf.abide', (e) => {
-          this.validateInput($(e.target));
+      this.$inputs.forEach((input) => {
+        input.removeEventListener('input.zf.abide');
+        input.addEventListener('input.zf.abide', (event) => {
+          this.validateInput(event.currentTarget);
         });
+      });
     }
 
     if (this.options.validateOnBlur) {
-      this.$inputs
-        .off('blur.zf.abide')
-        .on('blur.zf.abide', (e) => {
-          this.validateInput($(e.target));
+      this.$inputs.forEach((input) => {
+        input.removeEventListener('blur.zf.abide');
+        input.addEventListener('blur.zf.abide', (event) => {
+          this.validateInput(event.currentTarget);
         });
+      });
     }
   }
 
   /**
-     * Checks whether or not a form element has the required attribute and if it's checked or not
-     * @param {Element} element - DOM Element to check for required attribute
-     * @returns {Boolean} Boolean value depends on whether or not attribute is checked or empty
-     */
+   * Checks whether or not a form element has the required attribute and if it's checked or not
+   * @param {Element} element - DOM Element to check for required attribute
+   * @returns {Boolean} Boolean value depends on whether or not attribute is checked or empty
+   */
   static requiredCheck($el) {
     if (!$el.required) return true;
 
@@ -91,8 +95,7 @@ class Abide {
       case 'select':
       case 'select-one':
       case 'select-multiple':
-        var opt = $el.find('option:selected');
-        if (!opt.length || !opt.value) isGood = false;
+        if (!$el[$el.selectedIndex].length || !$el[$el.selectedIndex].value) isGood = false;
         break;
 
       default:
@@ -103,12 +106,12 @@ class Abide {
   }
 
   /**
-     * Get all elements siblings
-     * @param {Element} el DOM Element
-     * @param {String}* filter DOM Query string
-     * @returns {Array}
-     * @private
-     */
+   * Get all elements siblings
+   * @param {Element} el DOM Element
+   * @param {String}* filter DOM Query string
+   * @returns {Array}
+   * @private
+   */
   static siblings(element, filter = '') {
     let siblings = [];
     let sibling = element.parentNode.firstChild;
@@ -127,18 +130,18 @@ class Abide {
   }
 
   /**
-     * Get:
-     * - Based on $el, the first element(s) corresponding to `formErrorSelector` in this order:
-     *   1. The element's direct sibling('s).
-     *   2. The element's parent's children.
-     * - Element(s) with the attribute `[data-form-error-for]` set with the element's id.
-     *
-     * This allows for multiple form errors per input, though if none are found,
-     * no form errors will be shown.
-     *
-     * @param {Object} $el - DOM Element to use as reference to find the form error selector.
-     * @returns {Object} DOM Element with the selector.
-     */
+   * Get:
+   * - Based on $el, the first element(s) corresponding to `formErrorSelector` in this order:
+   *   1. The element's direct sibling('s).
+   *   2. The element's parent's children.
+   * - Element(s) with the attribute `[data-form-error-for]` set with the element's id.
+   *
+   * This allows for multiple form errors per input, though if none are found,
+   * no form errors will be shown.
+   *
+   * @param {Object} $el - DOM Element to use as reference to find the form error selector.
+   * @returns {Object} DOM Element with the selector.
+   */
   findFormError($el) {
     const {
       id,
@@ -157,13 +160,13 @@ class Abide {
   }
 
   /**
-     * Get the first element in this order:
-     * 2. The <label> with the attribute `[for="someInputId"]`
-     * 3. The `.closest()` <label>
-     *
-     * @param {Object} $el - DOM Element to check for required attribute
-     * @returns {Boolean} Boolean value depends on whether or not attribute is checked or empty
-     */
+   * Get the first element in this order:
+   * 2. The <label> with the attribute `[for="someInputId"]`
+   * 3. The `.closest()` <label>
+   *
+   * @param {Object} $el - DOM Element to check for required attribute
+   * @returns {Boolean} Boolean value depends on whether or not attribute is checked or empty
+   */
   findLabel($el) {
     const {
       id,
@@ -178,13 +181,13 @@ class Abide {
   }
 
   /**
-     * Get the set of labels associated with a set of radio els in this order
-     * 2. The <label> with the attribute `[for="someInputId"]`
-     * 3. The `.closest()` <label>
-     *
-     * @param {Object} $el - DOM Element to check for required attribute
-     * @returns {Boolean} Boolean value depends on whether or not attribute is checked or empty
-     */
+   * Get the set of labels associated with a set of radio els in this order
+   * 2. The <label> with the attribute `[for="someInputId"]`
+   * 3. The `.closest()` <label>
+   *
+   * @param {Object} $el - DOM Element to check for required attribute
+   * @returns {Boolean} Boolean value depends on whether or not attribute is checked or empty
+   */
   findRadioLabels($els) {
     const labels = $els.map((i, el) => {
       const {
@@ -202,9 +205,9 @@ class Abide {
   }
 
   /**
-     * Adds the CSS error class as specified by the Abide settings to the label, input, and the form
-     * @param {Object} $el - DOM Element to add the class to
-     */
+   * Adds the CSS error class as specified by the Abide settings to the label, input, and the form
+   * @param {Object} $el - DOM Element to add the class to
+   */
   addErrorClasses($el) {
     const $label = this.findLabel($el);
     const $formError = this.findFormError($el);
@@ -223,10 +226,10 @@ class Abide {
   }
 
   /**
-     * Adds [for] and [role=alert] attributes to all form error targetting $el,
-     * and [aria-describedby] attribute to $el toward the first form error.
-     * @param {Object} $el - DOM Element
-     */
+   * Adds [for] and [role=alert] attributes to all form error targetting $el,
+   * and [aria-describedby] attribute to $el toward the first form error.
+   * @param {Object} $el - DOM Element
+   */
   addA11yAttributes($el) {
     const $errors = this.findFormError($el);
     const $labels = $errors.filter('label');
@@ -238,7 +241,7 @@ class Abide {
       // Get the first error ID or create one
       let errorId = $error.getAttribute('id');
       if (typeof errorId === 'undefined') {
-        errorId = GetYoDigits(6, 'abide-error');
+        errorId = Abide.GetYoDigits(6, 'abide-error');
         $error.setAttribute('id', errorId);
       }
 
@@ -249,15 +252,14 @@ class Abide {
       // Get the input ID or create one
       let elemId = $el.getAttribute('id');
       if (typeof elemId === 'undefined') {
-        elemId = GetYoDigits(6, 'abide-input');
+        elemId = Abide.GetYoDigits(6, 'abide-input');
         $el.setAttribute('id', elemId);
       }
 
       // For each label targeting $el, set [for] if it is not set.
-      $labels.each((i, label) => {
-        const $label = $(label);
-        if (typeof $label.getAttribute('for') === 'undefined') {
-          $label.setAttribute('for', elemId);
+      $labels.forEach((label) => {
+        if (typeof label.getAttribute('for') === 'undefined') {
+          label.setAttribute('for', elemId);
         }
       });
     }
@@ -271,9 +273,9 @@ class Abide {
   }
 
   /**
-     * Adds [aria-live] attribute to the given global form error $el.
-     * @param {Object} $el - DOM Element to add the attribute to
-     */
+   * Adds [aria-live] attribute to the given global form error $el.
+   * @param {Object} $el - DOM Element to add the attribute to
+   */
   addGlobalErrorA11yAttributes($el) {
     if (typeof $el.getAttribute('aria-live') === 'undefined') {
       $el.setAttribute('aria-live', this.options.a11yErrorLevel);
@@ -281,10 +283,10 @@ class Abide {
   }
 
   /**
-     * Remove CSS error classes etc from an entire radio button group
-     * @param {String} groupName - A string that specifies the name of a radio button group
-     *
-     */
+   * Remove CSS error classes etc from an entire radio button group
+   * @param {String} groupName - A string that specifies the name of a radio button group
+   *
+   */
   removeRadioErrorClasses(groupName) {
     const $els = this.$element.find(`:radio[name="${groupName}"]`);
     const $labels = this.findRadioLabels($els);
@@ -306,10 +308,10 @@ class Abide {
   }
 
   /**
-     * Removes CSS error class as specified by the Abide settings
-     * from the label, input, and the form
-     * @param {Object} $el - DOM Element to remove the class from
-     */
+   * Removes CSS error class as specified by the Abide settings
+   * from the label, input, and the form
+   * @param {Object} $el - DOM Element to remove the class from
+   */
   removeErrorClasses($el) {
     // radios need to clear all of the els
     if ($el.type === 'radio') {
@@ -329,17 +331,18 @@ class Abide {
     $el.classList.remove(this.options.inputErrorClass);
     $el.removeAttribute('data-invalid');
     $el.removeAttribute('aria-invalid');
+    return true;
   }
 
   /**
-     * Goes through a form to find inputs and proceeds
-     * to validate them in ways specific to their type.
-     * Ignores inputs with data-abide-ignore, type="hidden" or disabled attributes set
-     * @fires Abide#invalid
-     * @fires Abide#valid
-     * @param {Element} element - DOM Element to validate, should be an HTML input
-     * @returns {Boolean} goodToGo - If the input is valid or not.
-     */
+   * Goes through a form to find inputs and proceeds
+   * to validate them in ways specific to their type.
+   * Ignores inputs with data-abide-ignore, type="hidden" or disabled attributes set
+   * @fires Abide#invalid
+   * @fires Abide#valid
+   * @param {Element} element - DOM Element to validate, should be an HTML input
+   * @returns {Boolean} goodToGo - If the input is valid or not.
+   */
   validateInput($el) {
     const clearRequire = this.requiredCheck($el);
     let validated = false;
@@ -385,38 +388,33 @@ class Abide {
 
     if (goodToGo) {
       // Re-validate inputs that depend on this one with equalto
-      const dependentElements = this.$element.find(`[data-equalto="${$el.getAttribute('id')}"]`);
-      if (dependentElements.length) {
-        const _this = this;
-        dependentElements.each(function () {
-          if ($(this).val()) {
-            _this.validateInput($(this));
-          }
-        });
-      }
+      const dependentElements = this.$element.querySelectorAll(`[data-equalto="${$el.getAttribute('id')}"]`);
+      dependentElements.forEach((element) => {
+        this.validateInput(element);
+      });
     }
 
     this[goodToGo ? 'removeErrorClasses' : 'addErrorClasses']($el);
 
     /**
-         * Fires when the input is done checking for validation.
-         * Event trigger is either `valid.zf.abide` or `invalid.zf.abide`
-         * Trigger includes the DOM element of the input.
-         * @event Abide#valid
-         * @event Abide#invalid
-         */
+     * Fires when the input is done checking for validation.
+     * Event trigger is either `valid.zf.abide` or `invalid.zf.abide`
+     * Trigger includes the DOM element of the input.
+     * @event Abide#valid
+     * @event Abide#invalid
+     */
     $el.trigger(message, [$el]);
 
     return goodToGo;
   }
 
   /**
-     * Goes through a form and if there are any invalid inputs,
-     * it will display the form error element
-     * @returns {Boolean} noError - true if no errors were detected...
-     * @fires Abide#formvalid
-     * @fires Abide#forminvalid
-     */
+   * Goes through a form and if there are any invalid inputs,
+   * it will display the form error element
+   * @returns {Boolean} noError - true if no errors were detected...
+   * @fires Abide#formvalid
+   * @fires Abide#forminvalid
+   */
   validateForm() {
     const acc = [];
 
@@ -434,26 +432,26 @@ class Abide {
     });
 
     /**
-         * Fires when the form is finished validating.
-         * Event trigger is either `formvalid.zf.abide` or `forminvalid.zf.abide`.
-         * Trigger includes the element of the form.
-         * @event Abide#formvalid
-         * @event Abide#forminvalid
-         */
+     * Fires when the form is finished validating.
+     * Event trigger is either `formvalid.zf.abide` or `forminvalid.zf.abide`.
+     * Trigger includes the element of the form.
+     * @event Abide#formvalid
+     * @event Abide#forminvalid
+     */
     this.$element.trigger(`${noError ? 'formvalid' : 'forminvalid'}.zf.abide`, [this.$element]);
 
     return noError;
   }
 
   /**
-     * Determines whether or a not a text input is valid based
-     * on the pattern specified in the attribute.
-     *  If no matching pattern is found, returns true.
-     * @param {Object} $el - DOM Element to validate, should be a text input HTML element
-     * @param {String} pattern - string value of one of the RegEx patterns in Abide.options.patterns
-     * @returns {Boolean} Boolean value depends on whether or not
-     * the input value matches the pattern specified
-     */
+   * Determines whether or a not a text input is valid based
+   * on the pattern specified in the attribute.
+   *  If no matching pattern is found, returns true.
+   * @param {Object} $el - DOM Element to validate, should be a text input HTML element
+   * @param {String} pattern - string value of one of the RegEx patterns in Abide.options.patterns
+   * @returns {Boolean} Boolean value depends on whether or not
+   * the input value matches the pattern specified
+   */
   validateText($el, pattern) {
     const usedPattern = (pattern || $el.getAttribute('pattern') || $el.getAttribute('type'));
     const inputText = $el.val();
@@ -475,15 +473,15 @@ class Abide {
   }
 
   /**
-     * Determines whether or a not a radio input is valid based on whether or not
-     * it is required and selected.
-     * Although the function targets a single `<input>`,
-     * it validates by checking the `required` and `checked` properties
-     * of all radio buttons in its group.
-     * @param {String} groupName - A string that specifies the name of a radio button group
-     * @returns {Boolean} Boolean value depends on whether or not at least
-     * one radio input has been selected (if it's required)
-     */
+   * Determines whether or a not a radio input is valid based on whether or not
+   * it is required and selected.
+   * Although the function targets a single `<input>`,
+   * it validates by checking the `required` and `checked` properties
+   * of all radio buttons in its group.
+   * @param {String} groupName - A string that specifies the name of a radio button group
+   * @returns {Boolean} Boolean value depends on whether or not at least
+   * one radio input has been selected (if it's required)
+   */
   validateRadio(groupName) {
     // If at least one radio in the group has the `required` attribute,
     // the group is considered required
@@ -513,26 +511,25 @@ class Abide {
   }
 
   /**
-     * Determines if a selected input passes a custom validation function.
-     * Multiple validations can be used,
-     * if passed to the element with `data-validator="foo bar baz"` in a space separated listed.
-     * @param {Object} $el - jQuery input element.
-     * @param {String} validators - a string of function names matching
-     * functions in the Abide.options.validators object.
-     * @param {Boolean} required - self explanatory?
-     * @returns {Boolean} - true if validations passed.
-     */
+   * Determines if a selected input passes a custom validation function.
+   * Multiple validations can be used,
+   * if passed to the element with `data-validator="foo bar baz"` in a space separated listed.
+   * @param {Object} $el - jQuery input element.
+   * @param {String} validators - a string of function names matching
+   * functions in the Abide.options.validators object.
+   * @param {Boolean} required - self explanatory?
+   * @returns {Boolean} - true if validations passed.
+   */
   matchValidation($el, validators, required) {
-    required = !!required;
-
-    const clear = validators.split(' ').map(v => this.options.validators[v]($el, required, $el.parentNode));
+    const requiredParam = !!required;
+    const clear = validators.split(' ').map(v => this.options.validators[v]($el, requiredParam, $el.parentNode));
     return clear.indexOf(false) === -1;
   }
 
   /**
-     * Resets form inputs and styles
-     * @fires Abide#formreset
-     */
+   * Resets form inputs and styles
+   * @fires Abide#formreset
+   */
   resetForm() {
     this.$element.querySelectorAll(`.${this.options.labelErrorClass}:not(small)`).forEach((node) => {
       node.classList.remove(this.options.labelErrorClass);
@@ -545,7 +542,7 @@ class Abide {
     });
 
     this.$element.find('[data-abide-error]').css('display', 'none');
-    this.$element.querySelectorAll(':not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="hidden"]):not([type="radio"]):not([type="checkbox"]):not([data-abide-ignore])').forEach((element) => {
+    this.$element.querySelectorAll('input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="hidden"]):not([type="radio"]):not([type="checkbox"]):not([data-abide-ignore])').forEach((element) => {
       element.removeAttribute('data-invalid');
       element.removeAttribute('aria-invalid');
       element.setAttribute('value', '');
@@ -556,28 +553,32 @@ class Abide {
       element.removeAttribute('checked');
     });
     /**
-         * Fires when the form has been reset.
-         * @event Abide#formreset
-         */
-    this.$element.trigger('formreset.zf.abide', [this.$element]);
+     * Fires when the form has been reset.
+     * @event Abide#formreset
+     */
+    // this.$element.trigger('formreset.zf.abide', [this.$element]);
   }
 
   /**
-     * Destroys an instance of Abide.
-     * Removes error styles and classes from elements, without resetting their values.
-     */
-  _destroy() {
-    const _this = this;
-    this.$element
-      .off('.abide')
-      .find('[data-abide-error]')
-      .css('display', 'none');
+   * Destroys an instance of Abide.
+   * Removes error styles and classes from elements, without resetting their values.
+   */
+  destroy() {
+    this.$element.removeEventListener('.abide');
+    [].slice.call(this.$element.querySelectorAll('[data-abide-error]')).forEach((element) => {
+      const destroyElement = element;
+      destroyElement.style.display = 'none';
+    });
 
-    this.$inputs
-      .off('.abide')
-      .each(function () {
-        _this.removeErrorClasses($(this));
-      });
+    this.$inputs.forEach((element) => {
+      element.removeEventListener('.abide');
+      this.removeErrorClasses(element);
+    });
+  }
+
+  static GetYoDigits(length, namespace) {
+    const givenLength = length || 6;
+    return Math.round(((36 ** (givenLength + 1)) - Math.random() * (36 ** (givenLength + 1)))).toString(36).slice(1) + (namespace ? `-${namespace}` : '');
   }
 }
 
@@ -586,81 +587,81 @@ class Abide {
  */
 Abide.defaults = {
   /**
-     * The default event to validate inputs. Checkboxes and radios validate immediately.
-     * Remove or change this value for manual validation.
-     * @option
-     * @type {?string}
-     * @default 'fieldChange'
-     */
+   * The default event to validate inputs. Checkboxes and radios validate immediately.
+   * Remove or change this value for manual validation.
+   * @option
+   * @type {?string}
+   * @default 'fieldChange'
+   */
   validateOn: 'fieldChange',
 
   /**
-     * Class to be applied to input labels on failed validation.
-     * @option
-     * @type {string}
-     * @default 'is-invalid-label'
-     */
+   * Class to be applied to input labels on failed validation.
+   * @option
+   * @type {string}
+   * @default 'is-invalid-label'
+   */
   labelErrorClass: 'is-invalid-label',
 
   /**
-     * Class to be applied to inputs on failed validation.
-     * @option
-     * @type {string}
-     * @default 'is-invalid-input'
-     */
+   * Class to be applied to inputs on failed validation.
+   * @option
+   * @type {string}
+   * @default 'is-invalid-input'
+   */
   inputErrorClass: 'is-invalid-input',
 
   /**
-     * Class selector to use to target Form Errors for show/hide.
-     * @option
-     * @type {string}
-     * @default '.form-error'
-     */
+   * Class selector to use to target Form Errors for show/hide.
+   * @option
+   * @type {string}
+   * @default '.form-error'
+   */
   formErrorSelector: '.form-error',
 
   /**
-     * Class added to Form Errors on failed validation.
-     * @option
-     * @type {string}
-     * @default 'is-visible'
-     */
+   * Class added to Form Errors on failed validation.
+   * @option
+   * @type {string}
+   * @default 'is-visible'
+   */
   formErrorClass: 'is-visible',
 
   /**
-     * If true, automatically insert when possible:
-     * - `[aria-describedby]` on fields
-     * - `[role=alert]` on form errors and `[for]` on form error labels
-     * - `[aria-live]` on global errors `[data-abide-error]` (see option `a11yErrorLevel`).
-     * @option
-     * @type {boolean}
-     * @default true
-     */
+   * If true, automatically insert when possible:
+   * - `[aria-describedby]` on fields
+   * - `[role=alert]` on form errors and `[for]` on form error labels
+   * - `[aria-live]` on global errors `[data-abide-error]` (see option `a11yErrorLevel`).
+   * @option
+   * @type {boolean}
+   * @default true
+   */
   a11yAttributes: true,
 
   /**
-     * [aria-live] attribute value to be applied on global errors `[data-abide-error]`.
-     * Options are: 'assertive', 'polite' and 'off'/null
-     * @option
-     * @see https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/ARIA_Live_Regions
-     * @type {string}
-     * @default 'assertive'
-     */
+   * [aria-live] attribute value to be applied on global errors `[data-abide-error]`.
+   * Options are: 'assertive', 'polite' and 'off'/null
+   * @option
+   * @see https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/ARIA_Live_Regions
+   * @type {string}
+   * @default 'assertive'
+   */
   a11yErrorLevel: 'assertive',
 
   /**
-     * Set to true to validate text inputs on any value change.
-     * @option
-     * @type {boolean}
-     * @default false
-     */
+   * Set to true to validate text inputs on any value change.
+   * @option
+   * @type {boolean}
+   * @default false
+   */
   liveValidate: false,
 
   /**
-     * Set to true to validate inputs on blur.
-     * @option
-     * @type {boolean}
-     * @default false
-     */
+   * Set to true to validate inputs on blur.
+   * @option
+   * @type {boolean}
+   * @default false
+   */
   validateOnBlur: false,
 
   patterns: {
@@ -674,26 +675,26 @@ Abide.defaults = {
     cvv: /^([0-9]){3,4}$/,
 
     // http://www.whatwg.org/specs/web-apps/current-work/multipage/states-of-the-type-attribute.html#valid-e-mail-address
-    email: /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/,
+    email: /^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/,
 
     // From CommonRegexJS (@talyssonoc)
     // https://github.com/talyssonoc/CommonRegexJS/blob/e2901b9f57222bc14069dc8f0598d5f412555411/lib/commonregex.js#L76
     // For more restrictive URL Regexs, see https://mathiasbynens.be/demo/url-regex.
-    url: /^((?:(https?|ftps?|file|ssh|sftp):\/\/|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\((?:[^\s()<>]+|(?:\([^\s()<>]+\)))*\))+(?:\((?:[^\s()<>]+|(?:\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?\xab\xbb\u201c\u201d\u2018\u2019]))$/,
+    url: /^((?:(https?|ftps?|file|ssh|sftp):\/\/|www\d{0,3}[.]|[a-z0-9.\\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\((?:[^\s()<>]+|(?:\([^\s()<>]+\)))*\))+(?:\((?:[^\s()<>]+|(?:\([^\s()<>]+\)))*\)|[^\s`!()\\[\]{};:\\'".,<>?\xab\xbb\u201c\u201d\u2018\u2019]))$/,
 
     // abc.de
-    domain: /^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,8}$/,
+    domain: /^([a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,8}$/,
 
-    datetime: /^([0-2][0-9]{3})\-([0-1][0-9])\-([0-3][0-9])T([0-5][0-9])\:([0-5][0-9])\:([0-5][0-9])(Z|([\-\+]([0-1][0-9])\:00))$/,
+    datetime: /^([0-2][0-9]{3})\\-([0-1][0-9])\\-([0-3][0-9])T([0-5][0-9])\\:([0-5][0-9])\\:([0-5][0-9])(Z|([\\-\\+]([0-1][0-9])\\:00))$/,
     // YYYY-MM-DD
     date: /(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))$/,
     // HH:MM:SS
     time: /^(0[0-9]|1[0-9]|2[0-3])(:[0-5][0-9]){2}$/,
-    dateISO: /^\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}$/,
+    dateISO: /^\d{4}[\\/\\-]\d{1,2}[\\/\\-]\d{1,2}$/,
     // MM/DD/YYYY
-    month_day_year: /^(0[1-9]|1[012])[- \/.](0[1-9]|[12][0-9]|3[01])[- \/.]\d{4}$/,
+    month_day_year: /^(0[1-9]|1[012])[- \\/.](0[1-9]|[12][0-9]|3[01])[- \\/.]\d{4}$/,
     // DD/MM/YYYY
-    day_month_year: /^(0[1-9]|[12][0-9]|3[01])[- \/.](0[1-9]|1[012])[- \/.]\d{4}$/,
+    day_month_year: /^(0[1-9]|[12][0-9]|3[01])[- \\/.](0[1-9]|1[012])[- \\/.]\d{4}$/,
 
     // #FFF or #FFFFFF
     color: /^#?([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/,
@@ -701,19 +702,19 @@ Abide.defaults = {
     // Domain || URL
     website: {
       test: text => Abide.defaults.patterns.domain.test(text)
-                || Abide.defaults.patterns.url.test(text),
+        || || Abide.defaults.patterns.url.test(text),
     },
   },
 
   /**
-     * Optional validation functions to be used. `equalTo` being the only default included function.
-     * Functions should return only a boolean if the input is valid or not.
-     * Functions are given the following arguments:
-     * el : The jQuery element to validate.
-     * required : Boolean value of the required attribute be present or not.
-     * parent : The direct parent of the input.
-     * @option
-     */
+   * Optional validation functions to be used. `equalTo` being the only default included function.
+   * Functions should return only a boolean if the input is valid or not.
+   * Functions are given the following arguments:
+   * el : The jQuery element to validate.
+   * required : Boolean value of the required attribute be present or not.
+   * parent : The direct parent of the input.
+   * @option
+   */
   validators: {
     equalTo(el) {
       const matcherElement = document.querySelector(`#${el.getAttribute('data-equalto')}`);
@@ -721,3 +722,5 @@ Abide.defaults = {
     },
   },
 };
+export default Abide;
+
