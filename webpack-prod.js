@@ -5,14 +5,14 @@ const webpackCommon = require('./webpack-common');
 module.exports = webpackMerge(webpackCommon, {
   mode: 'production',
   entry: {
-    zero: './src/events.js',
+    abide: './src/abide.js',
   },
   watch: false,
   output: {
-    filename: 'zero-events.js',
+    filename: 'abide.js',
     path: path.resolve(__dirname, 'build'),
     libraryTarget: 'umd',
-    library: 'ZeroEvents',
+    library: 'Abide',
     umdNamedDefine: true,
     globalObject: 'this',
   },

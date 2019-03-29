@@ -3,7 +3,7 @@ const path = require('path');
 const webpackCommon = require('./webpack-common');
 
 const ENTRIES = {
-  manifest: './sample/app.js',
+  app: './sample/app.js',
 };
 
 
