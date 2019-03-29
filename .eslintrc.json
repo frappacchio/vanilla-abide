@@ -1,0 +1,15 @@
+{
+    "extends": "airbnb-base",
+    "env": {
+        "browser": true
+    },
+    "plugins": [
+        "compat"
+    ],
+    "rules": {
+        "import/no-extraneous-dependencies": ["error", {
+            "devDependencies": true
+        }],
+        "compat/compat": "error"
+    }
+}
