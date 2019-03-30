@@ -50,8 +50,9 @@ class Abide {
       this.resetForm();
     });
     this.$element.addEventListener('submit', (event) => {
-      event.preventDefault();
-      this.validateForm();
+      if (!this.validateForm()) {
+        event.preventDefault();
+      }
     });
     if (this.options.validateOn === 'fieldChange') {
       this.$inputs.forEach((input) => {
@@ -86,9 +87,7 @@ class Abide {
    */
   static requiredCheck($el) {
     if (!$el.required) return true;
-
     let isGood = true;
-
     switch ($el.type) {
       case 'checkbox':
         isGood = $el.checked;
@@ -97,7 +96,7 @@ class Abide {
       case 'select':
       case 'select-one':
       case 'select-multiple':
-        if (!$el[$el.selectedIndex].length || !$el[$el.selectedIndex].value) isGood = false;
+        if (!$el[$el.selectedIndex] || !$el[$el.selectedIndex].hasAttribute('value')) isGood = false;
         break;
 
       default:
@@ -328,7 +327,7 @@ class Abide {
     const $label = this.findLabel($el);
     const $formError = this.findFormError($el);
 
-    if ($label.length) {
+    if ($label) {
       $label.classList.remove(this.options.labelErrorClass);
     }
 
@@ -434,7 +433,7 @@ class Abide {
      * @event Abide#formvalid
      * @event Abide#forminvalid
      */
-    this.$element.dispatchEvent(new Event(`${noError ? 'formValid' : 'formInvalid'}`), [this.$element]);
+    this.$element.dispatchEvent(new Event(`${noError ? 'formValid' : 'formInvalid'}`));
 
     return noError;
   }
@@ -552,11 +551,6 @@ class Abide {
       element.removeAttribute('aria-invalid');
       element.removeAttribute('checked');
     });
-    /**
-     * Fires when the form has been reset.
-     * @event Abide#formreset
-     */
-    // this.$element.trigger('formreset.zf.abide', [this.$element]);
   }
 
   /**
