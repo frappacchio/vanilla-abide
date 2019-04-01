@@ -3,12 +3,11 @@ class Abide {
    * Creates a new instance of Abide.
    * @class
    * @name Abide
-   * @fires Abide#init
    * @param {Element} element - DOM Element to add the trigger to.
    * @param {Object} options - Overrides to the default plugin settings.
    */
   constructor(element, options = {}) {
-    this.$element = element;
+    this.element = element;
     this.options = {
       ...Abide.defaults,
       ...options,
@@ -28,15 +27,15 @@ class Abide {
    * Initializes the Abide plugin and calls functions to get Abide functioning on load.
    */
   init() {
-    const inputs = [].slice.call(this.$element.querySelectorAll('input:not([type="submit"])'));
-    const selectAndTextArea = [].slice.call(this.$element.querySelectorAll('textarea,select'));
-    this.$inputs = [...inputs, ...selectAndTextArea];
-    const $globalErrors = [].slice.call(this.$element.querySelectorAll('[data-abide-error]'));
+    const inputs = [].slice.call(this.element.querySelectorAll('input:not([type="submit"])'));
+    const selectAndTextArea = [].slice.call(this.element.querySelectorAll('textarea,select'));
+    this.inputs = [...inputs, ...selectAndTextArea];
+    const globalErrors = [].slice.call(this.element.querySelectorAll('[data-abide-error]'));
 
-    // Add a11y attributes to all fields
-    if (this.options.a11yAttributes) {
-      this.$inputs.forEach(input => this.addA11yAttributes(input));
-      $globalErrors.forEach(error => this.addGlobalErrorA11yAttributes(error));
+    // Add accessibility attributes to all fields
+    if (this.options.accessibilityAttributes) {
+      this.inputs.forEach(input => this.addAccessibilityAttributes(input));
+      globalErrors.forEach(error => this.addGlobalErrorForAccessibilityAttributes(error));
     }
 
     this.events();
@@ -46,16 +45,16 @@ class Abide {
    * Initializes events for Abide.
    */
   events() {
-    this.$element.addEventListener('reset', () => {
+    this.element.addEventListener('reset', () => {
       this.resetForm();
     });
-    this.$element.addEventListener('submit', (event) => {
+    this.element.addEventListener('submit', (event) => {
       if (!this.validateForm()) {
         event.preventDefault();
       }
     });
     if (this.options.validateOn === 'fieldChange') {
-      this.$inputs.forEach((input) => {
+      this.inputs.forEach((input) => {
         input.addEventListener('change', (event) => {
           this.validateInput(event.currentTarget);
         });
@@ -63,7 +62,7 @@ class Abide {
     }
 
     if (this.options.liveValidate) {
-      this.$inputs.forEach((input) => {
+      this.inputs.forEach((input) => {
         input.addEventListener('input', (event) => {
           this.validateInput(event.currentTarget);
         });
@@ -71,7 +70,7 @@ class Abide {
     }
 
     if (this.options.validateOnBlur) {
-      this.$inputs.forEach((input) => {
+      this.inputs.forEach((input) => {
         input.addEventListener('blur', (event) => {
           this.validateInput(event.currentTarget);
         });
@@ -85,22 +84,22 @@ class Abide {
    * @param {Element} element - DOM Element to check for required attribute
    * @returns {Boolean} Boolean value depends on whether or not attribute is checked or empty
    */
-  static requiredCheck($el) {
-    if (!$el.required) return true;
+  static requiredCheck(element) {
+    if (!element.required) return true;
     let isGood = true;
-    switch ($el.type) {
+    switch (element.type) {
       case 'checkbox':
-        isGood = $el.checked;
+        isGood = element.checked;
         break;
 
       case 'select':
       case 'select-one':
       case 'select-multiple':
-        if (!$el[$el.selectedIndex] || !$el[$el.selectedIndex].hasAttribute('value')) isGood = false;
+        if (!element[element.selectedIndex] || !element[element.selectedIndex].hasAttribute('value')) isGood = false;
         break;
 
       default:
-        if (!$el.value || !$el.value.length) isGood = false;
+        if (!element.value || !element.value.length) isGood = false;
     }
 
     return isGood;
@@ -132,7 +131,7 @@ class Abide {
 
   /**
    * Get:
-   * - Based on $el, the first element(s) corresponding to `formErrorSelector` in this order:
+   * - Based on element, the first element(s) corresponding to `formErrorSelector` in this order:
    *   1. The element's direct sibling('s).
    *   2. The element's parent's children.
    * - Element(s) with the attribute `[data-form-error-for]` set with the element's id.
@@ -140,27 +139,27 @@ class Abide {
    * This allows for multiple form errors per input, though if none are found,
    * no form errors will be shown.
    *
-   * @param {Object} $el - DOM Element to use as reference to find the form error selector.
+   * @param {Object} element - DOM Element to use as reference to find the form error selector.
    * @returns {Object} DOM Element with the selector.
    */
-  findFormError($el) {
+  findFormError(element) {
     const {
       id,
-    } = $el;
-    let $error = Abide.siblings($el, this.options.formErrorSelector);
+    } = element;
+    let error = Abide.siblings(element, this.options.formErrorSelector);
 
-    if (!$error.length) {
-      $error = [].slice.call($el.parentNode.querySelectorAll(this.options.formErrorSelector));
+    if (!error.length) {
+      error = [].slice.call(element.parentNode.querySelectorAll(this.options.formErrorSelector));
     }
 
     if (id) {
-      const parent = this.$element.querySelector(`[data-form-error-for="${id}"]`);
+      const parent = this.element.querySelector(`[data-form-error-for="${id}"]`);
       if (parent) {
-        $error.push(parent);
+        error.push(parent);
       }
     }
 
-    return $error;
+    return error;
   }
 
   /**
@@ -168,20 +167,20 @@ class Abide {
    * 2. The <label> with the attribute `[for="someInputId"]`
    * 3. The `.closest()` <label>
    *
-   * @param {Object} $el - DOM Element to check for required attribute
+   * @param {Object} element - DOM Element to check for required attribute
    * @returns {Boolean} Boolean value depends on whether or not attribute is checked or empty
    */
-  findLabel($el) {
+  findLabel(element) {
     const {
       id,
-    } = $el;
-    const $label = this.$element.querySelector(`label[for="${id}"]`);
+    } = element;
+    const label = this.element.querySelector(`label[for="${id}"]`);
 
-    if (!$label) {
-      return $el.closest('label');
+    if (!label) {
+      return element.closest('label');
     }
 
-    return $label;
+    return label;
   }
 
   /**
@@ -189,20 +188,20 @@ class Abide {
    * 2. The <label> with the attribute `[for="someInputId"]`
    * 3. The `.closest()` <label>
    *
-   * @param {Object} $el - DOM Element to check for required attribute
+   * @param {Object} element - DOM Element to check for required attribute
    * @returns {Boolean} Boolean value depends on whether or not attribute is checked or empty
    */
-  findRadioLabels($els) {
-    const labels = $els.map((el) => {
+  findRadioLabels(elements) {
+    const labels = elements.map((el) => {
       const {
         id,
       } = el;
-      let $label = this.$element.querySelector(`label[for="${id}"]`);
+      let label = this.element.querySelector(`label[for="${id}"]`);
 
-      if (!$label) {
-        $label = el.closest('label');
+      if (!label) {
+        label = el.closest('label');
       }
-      return $label;
+      return label;
     });
 
     return [].slice.call(labels);
@@ -210,68 +209,68 @@ class Abide {
 
   /**
    * Adds the CSS error class as specified by the Abide settings to the label, input, and the form
-   * @param {Object} $el - DOM Element to add the class to
+   * @param {Object} element - DOM Element to add the class to
    */
-  addErrorClasses($el) {
-    const $label = this.findLabel($el);
-    const $formError = this.findFormError($el);
+  addErrorClasses(element) {
+    const label = this.findLabel(element);
+    const formError = this.findFormError(element);
 
-    if ($label) {
-      $label.classList.add(this.options.labelErrorClass);
+    if (label) {
+      label.classList.add(this.options.labelErrorClass);
     }
 
-    if ($formError.length) {
-      $formError.forEach((form) => {
+    if (formError.length) {
+      formError.forEach((form) => {
         form.classList.add(this.options.formErrorClass);
       });
     }
 
-    $el.classList.add(this.options.inputErrorClass);
-    $el.setAttribute('data-invalid', '');
-    $el.setAttribute('aria-invalid', true);
+    element.classList.add(this.options.inputErrorClass);
+    element.setAttribute('data-invalid', '');
+    element.setAttribute('aria-invalid', true);
   }
 
   /**
-   * Adds [for] and [role=alert] attributes to all form error targetting $el,
-   * and [aria-describedby] attribute to $el toward the first form error.
-   * @param {Object} $el - DOM Element
+   * Adds [for] and [role=alert] attributes to all form error targetting element,
+   * and [aria-describedby] attribute to element toward the first form error.
+   * @param {Object} element - DOM Element
    */
-  addA11yAttributes($el) {
-    const $errors = this.findFormError($el);
-    const $labels = $errors.filter(element => element.nodeName.toLowerCase() === 'label');
-    const $error = $errors[0];
-    if (!$errors.length) return;
+  addAccessibilityAttributes(element) {
+    const errors = this.findFormError(element);
+    const labels = errors.filter(errorElement => errorElement.nodeName.toLowerCase() === 'label');
+    const error = errors[0];
+    if (!errors.length) return;
 
     // Set [aria-describedby] on the input toward the first form error if it is not set
-    if (typeof $el.getAttribute('aria-describedby') === 'undefined') {
+    if (typeof element.getAttribute('aria-describedby') === 'undefined') {
       // Get the first error ID or create one
-      let errorId = $error.getAttribute('id');
+      let errorId = error.getAttribute('id');
       if (typeof errorId === 'undefined') {
         errorId = Abide.GetYoDigits(6, 'abide-error');
-        $error.setAttribute('id', errorId);
+        error.setAttribute('id', errorId);
       }
 
-      $el.setAttribute('aria-describedby', errorId);
+      element.setAttribute('aria-describedby', errorId);
     }
 
-    if ($labels.filter('[for]').length < $labels.length) {
+    if (labels.filter('[for]').length < labels.length) {
       // Get the input ID or create one
-      let elemId = $el.getAttribute('id');
+      let elemId = element.getAttribute('id');
       if (typeof elemId === 'undefined') {
         elemId = Abide.GetYoDigits(6, 'abide-input');
-        $el.setAttribute('id', elemId);
+        element.setAttribute('id', elemId);
       }
 
-      // For each label targeting $el, set [for] if it is not set.
-      $labels.forEach((label) => {
+      // For each label targeting element, set [for] if it is not set.
+      labels.forEach((label) => {
         if (typeof label.getAttribute('for') === 'undefined') {
           label.setAttribute('for', elemId);
         }
       });
     }
 
-    // For each error targeting $el, set [role=alert] if it is not set.
-    $errors.forEach((label) => {
+    // For each error targeting element, set [role=alert] if it is not set.
+    errors.forEach((label) => {
       if (typeof label.getAttribute('role') === 'undefined') {
         label.setAttribute('role', 'alert');
       }
@@ -279,12 +278,12 @@ class Abide {
   }
 
   /**
-   * Adds [aria-live] attribute to the given global form error $el.
-   * @param {Object} $el - DOM Element to add the attribute to
+   * Adds [aria-live] attribute to the given global form error element.
+   * @param {Object} element - DOM Element to add the attribute to
    */
-  addGlobalErrorA11yAttributes($el) {
-    if (typeof $el.getAttribute('aria-live') === 'undefined') {
-      $el.setAttribute('aria-live', this.options.a11yErrorLevel);
+  addGlobalErrorForAccessibilityAttributes(element) {
+    if (typeof element.getAttribute('aria-live') === 'undefined') {
+      element.setAttribute('aria-live', this.options.accessibilityErrorLevel);
     }
   }
 
@@ -294,18 +293,18 @@ class Abide {
    *
    */
   removeRadioErrorClasses(groupName) {
-    const $els = [].slice.call(this.$element.querySelectorAll(`[type="radio"][name="${groupName}"]`));
-    const $labels = this.findRadioLabels($els);
+    const elements = [].slice.call(this.element.querySelectorAll(`[type="radio"][name="${groupName}"]`));
+    const labels = this.findRadioLabels(elements);
 
-    $labels.forEach((label) => {
+    labels.forEach((label) => {
       label.classList.remove(this.options.labelErrorClass);
     });
 
 
-    $els.forEach((element) => {
-      const $formErrors = this.findFormError(element);
-      if ($formErrors.length) {
-        $formErrors.classList.remove(this.options.formErrorClass);
+    elements.forEach((element) => {
+      const formErrors = this.findFormError(element);
+      if (formErrors.length) {
+        formErrors.classList.remove(this.options.formErrorClass);
       }
       element.classList.remove(this.options.inputErrorClass);
       element.removeAttribute('data-invalid');
@@ -316,27 +315,27 @@ class Abide {
   /**
    * Removes CSS error class as specified by the Abide settings
    * from the label, input, and the form
-   * @param {Object} $el - DOM Element to remove the class from
+   * @param {Object} element - DOM Element to remove the class from
    */
-  removeErrorClasses($el) {
+  removeErrorClasses(element) {
     // radios need to clear all of the els
-    if ($el.type === 'radio') {
-      return this.removeRadioErrorClasses($el.getAttribute('name'));
+    if (element.type === 'radio') {
+      return this.removeRadioErrorClasses(element.getAttribute('name'));
     }
 
-    const $label = this.findLabel($el);
-    const $formError = this.findFormError($el);
+    const label = this.findLabel(element);
+    const formError = this.findFormError(element);
 
-    if ($label) {
-      $label.classList.remove(this.options.labelErrorClass);
+    if (label) {
+      label.classList.remove(this.options.labelErrorClass);
     }
 
-    if ($formError.length) {
-      $formError.classList.remove(this.options.formErrorClass);
+    if (formError.length) {
+      formError.classList.remove(this.options.formErrorClass);
     }
-    $el.classList.remove(this.options.inputErrorClass);
-    $el.removeAttribute('data-invalid');
-    $el.removeAttribute('aria-invalid');
+    element.classList.remove(this.options.inputErrorClass);
+    element.removeAttribute('data-invalid');
+    element.removeAttribute('aria-invalid');
     return true;
   }
 
@@ -349,21 +348,21 @@ class Abide {
    * @param {Element} element - DOM Element to validate, should be an HTML input
    * @returns {Boolean} goodToGo - If the input is valid or not.
    */
-  validateInput($el) {
-    const clearRequire = Abide.requiredCheck($el);
+  validateInput(element) {
+    const clearRequire = Abide.requiredCheck(element);
     let validated = false;
     let customValidator = true;
-    const validator = $el.getAttribute('data-validator');
+    const validator = element.getAttribute('data-validator');
     let equalTo = true;
 
     // don't validate ignored inputs or hidden inputs or disabled inputs
-    if ($el.hasAttribute('data-abide-ignore') || $el.type === 'hidden' || $el.hasAttribute('disabled')) {
+    if (element.hasAttribute('data-abide-ignore') || element.type === 'hidden' || element.hasAttribute('disabled')) {
       return true;
     }
 
-    switch ($el.type) {
+    switch (element.type) {
       case 'radio':
-        validated = this.validateRadio($el.getAttribute('name'));
+        validated = this.validateRadio(element.getAttribute('name'));
         break;
 
       case 'checkbox':
@@ -377,15 +376,15 @@ class Abide {
         break;
 
       default:
-        validated = this.validateText($el);
+        validated = this.validateText(element);
     }
 
     if (validator) {
-      customValidator = this.matchValidation($el, validator, $el.getAttribute('required'));
+      customValidator = this.matchValidation(element, validator, element.getAttribute('required'));
     }
 
-    if ($el.getAttribute('data-equalto')) {
-      equalTo = this.options.validators.equalTo($el);
+    if (element.getAttribute('data-equalto')) {
+      equalTo = this.options.validators.equalTo(element);
     }
 
 
@@ -393,13 +392,13 @@ class Abide {
 
     if (goodToGo) {
       // Re-validate inputs that depend on this one with equalto
-      const dependentElements = this.$element.querySelectorAll(`[data-equalto="${$el.getAttribute('id')}"]`);
+      const dependentElements = this.element.querySelectorAll(`[data-equalto="${element.getAttribute('id')}"]`);
       dependentElements.forEach((element) => {
         this.validateInput(element);
       });
     }
 
-    this[goodToGo ? 'removeErrorClasses' : 'addErrorClasses']($el);
+    this[goodToGo ? 'removeErrorClasses' : 'addErrorClasses'](element);
     return goodToGo;
   }
 
@@ -413,17 +412,17 @@ class Abide {
   validateForm() {
     const acc = [];
 
-    this.$inputs.forEach((element) => {
+    this.inputs.forEach((element) => {
       acc.push(this.validateInput(element));
     });
 
     const noError = acc.indexOf(false) === -1;
 
-    this.$element.querySelectorAll('[data-abide-error]').forEach(($elem) => {
-      // Ensure a11y attributes are set
-      if (this.options.a11yAttributes) this.addGlobalErrorA11yAttributes($elem);
+    this.element.querySelectorAll('[data-abide-error]').forEach((element) => {
+      // Ensure accessibility attributes are set
+      if (this.options.accessibilityAttributes) this.addGlobalErrorForAccessibilityAttributes(element);
       // Show or hide the error
-      $elem.css('display', (noError ? 'none' : 'block'));
+      element.css('display', (noError ? 'none' : 'block'));
     });
 
     /**
@@ -433,7 +432,7 @@ class Abide {
      * @event Abide#formvalid
      * @event Abide#forminvalid
      */
-    this.$element.dispatchEvent(new Event(`${noError ? 'formValid' : 'formInvalid'}`));
+    this.element.dispatchEvent(new Event(`${noError ? 'formValid' : 'formInvalid'}`));
 
     return noError;
   }
@@ -442,25 +441,25 @@ class Abide {
    * Determines whether or a not a text input is valid based
    * on the pattern specified in the attribute.
    *  If no matching pattern is found, returns true.
-   * @param {Object} $el - DOM Element to validate, should be a text input HTML element
+   * @param {Object} element - DOM Element to validate, should be a text input HTML element
    * @param {String} pattern - string value of one of the RegEx patterns in Abide.options.patterns
    * @returns {Boolean} Boolean value depends on whether or not
    * the input value matches the pattern specified
    */
-  validateText($el, pattern) {
-    const usedPattern = (pattern || $el.getAttribute('pattern') || $el.getAttribute('type'));
-    const inputText = $el.value;
+  validateText(element, pattern) {
+    const usedPattern = (pattern || element.getAttribute('pattern') || element.getAttribute('type'));
+    const inputText = element.value;
     let valid = false;
 
     if (inputText.length) {
       if (Object.prototype.hasOwnProperty.call(this.options.patterns, usedPattern)) {
         valid = this.options.patterns[usedPattern].test(inputText);
-      } else if (pattern !== $el.getAttribute('type')) {
+      } else if (pattern !== element.getAttribute('type')) {
         valid = new RegExp(pattern).test(inputText);
       } else {
         valid = true;
       }
-    } else if (!$el.getAttribute('required')) {
+    } else if (!element.getAttribute('required')) {
       valid = true;
     }
 
@@ -481,12 +480,12 @@ class Abide {
     // If at least one radio in the group has the `required` attribute,
     // the group is considered required
     // Per W3C spec, all radio buttons in a group should have `required`, but we're being nice
-    const $group = this.$element.querySelectorAll(`[type="radio"][name="${groupName}"]`);
+    const group = this.element.querySelectorAll(`[type="radio"][name="${groupName}"]`);
     let valid = false;
     let required = false;
 
     // For the group to be required, at least one radio needs to be required
-    $group.forEach((e) => {
+    group.forEach((e) => {
       if (e.hasAttribute('required')) {
         required = true;
       }
@@ -495,7 +494,7 @@ class Abide {
 
     if (!valid) {
       // For the group to be valid, at least one radio needs to be checked
-      $group.forEach((e) => {
+      group.forEach((e) => {
         if (e.checked) {
           valid = true;
         }
@@ -509,15 +508,15 @@ class Abide {
    * Determines if a selected input passes a custom validation function.
    * Multiple validations can be used,
    * if passed to the element with `data-validator="foo bar baz"` in a space separated listed.
-   * @param {Object} $el - jQuery input element.
+   * @param {Object} element - DOM input element.
    * @param {String} validators - a string of function names matching
    * functions in the Abide.options.validators object.
    * @param {Boolean} required - self explanatory?
    * @returns {Boolean} - true if validations passed.
    */
-  matchValidation($el, validators, required) {
+  matchValidation(element, validators, required) {
     const requiredParam = !!required;
-    const clear = validators.split(' ').map(v => this.options.validators[v]($el, requiredParam, $el.parentNode));
+    const clear = validators.split(' ').map(v => this.options.validators[v](element, requiredParam, element.parentNode));
     return clear.indexOf(false) === -1;
   }
 
@@ -526,27 +525,27 @@ class Abide {
    * @fires Abide#formreset
    */
   resetForm() {
-    this.$element.querySelectorAll(`.${this.options.labelErrorClass}:not(small)`).forEach((node) => {
+    this.element.querySelectorAll(`.${this.options.labelErrorClass}:not(small)`).forEach((node) => {
       node.classList.remove(this.options.labelErrorClass);
     });
-    this.$element.querySelectorAll(`.${this.options.inputErrorClass}:not(small)`).forEach((node) => {
+    this.element.querySelectorAll(`.${this.options.inputErrorClass}:not(small)`).forEach((node) => {
       node.classList.remove(this.options.inputErrorClass);
     });
     document.querySelectorAll(`${this.options.formErrorSelector}.${this.options.formErrorClass}`).forEach((node) => {
       node.classList.remove(this.options.formErrorClass);
     });
 
-    const abideErrors = [].slice.call(this.$element.querySelectorAll('[data-abide-error]'));
+    const abideErrors = [].slice.call(this.element.querySelectorAll('[data-abide-error]'));
     abideErrors.forEach((element) => {
       const fakeElement = element;
       fakeElement.style.display = 'none';
     });
-    this.$element.querySelectorAll('input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="hidden"]):not([type="radio"]):not([type="checkbox"]):not([data-abide-ignore])').forEach((element) => {
+    this.element.querySelectorAll('input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="hidden"]):not([type="radio"]):not([type="checkbox"]):not([data-abide-ignore])').forEach((element) => {
       element.removeAttribute('data-invalid');
       element.removeAttribute('aria-invalid');
       element.setAttribute('value', '');
     });
-    this.$element.querySelectorAll('[type="radio"]:not([data-abide-ignore]), [type="checkbox"]:not([data-abide-ignore])').forEach((element) => {
+    this.element.querySelectorAll('[type="radio"]:not([data-abide-ignore]), [type="checkbox"]:not([data-abide-ignore])').forEach((element) => {
       element.removeAttribute('data-invalid');
       element.removeAttribute('aria-invalid');
       element.removeAttribute('checked');
@@ -558,12 +557,12 @@ class Abide {
    * Removes error styles and classes from elements, without resetting their values.
    */
   destroy() {
-    [].slice.call(this.$element.querySelectorAll('[data-abide-error]')).forEach((element) => {
+    [].slice.call(this.element.querySelectorAll('[data-abide-error]')).forEach((element) => {
       const destroyElement = element;
       destroyElement.style.display = 'none';
     });
 
-    this.$inputs.forEach((element) => {
+    this.inputs.forEach((element) => {
       this.removeErrorClasses(element);
     });
   }
@@ -623,12 +622,12 @@ Abide.defaults = {
    * If true, automatically insert when possible:
    * - `[aria-describedby]` on fields
    * - `[role=alert]` on form errors and `[for]` on form error labels
-   * - `[aria-live]` on global errors `[data-abide-error]` (see option `a11yErrorLevel`).
+   * - `[aria-live]` on global errors `[data-abide-error]` (see option `accessibilityErrorLevel`).
    * @option
    * @type {boolean}
    * @default true
    */
-  a11yAttributes: true,
+  accessibilityAttributes: true,
 
   /**
    * [aria-live] attribute value to be applied on global errors `[data-abide-error]`.
@@ -638,7 +637,7 @@ Abide.defaults = {
    * @type {string}
    * @default 'assertive'
    */
-  a11yErrorLevel: 'assertive',
+  accessibilityErrorLevel: 'assertive',
 
   /**
    * Set to true to validate text inputs on any value change.
@@ -702,7 +701,7 @@ Abide.defaults = {
    * Optional validation functions to be used. `equalTo` being the only default included function.
    * Functions should return only a boolean if the input is valid or not.
    * Functions are given the following arguments:
-   * el : The jQuery element to validate.
+   * el : The DOM element to validate.
    * required : Boolean value of the required attribute be present or not.
    * parent : The direct parent of the input.
    * @option
