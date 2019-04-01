@@ -6,7 +6,7 @@ npm install vanilla-abide
 ```
 
 ```javascript
-import Abide from 'Abide';
+import Abide from 'vanilla-abide';
 const myForm = document.querySelector('#my-form');
 const abideInstance = new Abide(myForm);
 
