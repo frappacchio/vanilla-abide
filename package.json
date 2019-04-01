@@ -1,6 +1,6 @@
 {
   "name": "vanilla-abide",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A VanillaJS translation for Foundation Abide Form Validation",
   "main": "build/abide.js",
   "scripts": {
