@@ -1,5 +1,6 @@
 # Abide Form validation (Vanilla JS)
 A transposition in vanilla js of [Foundation Abide](https://foundation.zurb.com/sites/docs/abide.html) form validation library<br/>
+This library manage all the form elements in order to be WCAG compliant.
 
 ```bash
 npm install vanilla-abide

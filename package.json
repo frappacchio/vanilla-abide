@@ -18,8 +18,12 @@
     "validation",
     "abide",
     "foundation",
-    "form validation",
-    "vanilla"
+    "form-validation",
+    "vanilla",
+    "accessibility",
+    "validation-library",
+    "wcag",
+    "foundation 6"
   ],
   "author": {
     "name": "frappacchio",
