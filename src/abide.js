@@ -393,8 +393,8 @@ class Abide {
     if (goodToGo) {
       // Re-validate inputs that depend on this one with equalto
       const dependentElements = this.element.querySelectorAll(`[data-equalto="${element.getAttribute('id')}"]`);
-      dependentElements.forEach((element) => {
-        this.validateInput(element);
+      dependentElements.forEach((dependentElement) => {
+        this.validateInput(dependentElement);
       });
     }
 
@@ -420,7 +420,9 @@ class Abide {
 
     this.element.querySelectorAll('[data-abide-error]').forEach((element) => {
       // Ensure accessibility attributes are set
-      if (this.options.accessibilityAttributes) this.addGlobalErrorForAccessibilityAttributes(element);
+      if (this.options.accessibilityAttributes) {
+        this.addGlobalErrorForAccessibilityAttributes(element);
+      }
       // Show or hide the error
       element.css('display', (noError ? 'none' : 'block'));
     });

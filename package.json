@@ -17,7 +17,9 @@
     "form",
     "validation",
     "abide",
-    "foundation"
+    "foundation",
+    "form validation",
+    "vanilla"
   ],
   "author": {
     "name": "frappacchio",
