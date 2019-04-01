@@ -2,7 +2,7 @@
   "name": "vanilla-abide",
   "version": "1.0.0",
   "description": "A VanillaJS translation for Foundation Abide Form Validation",
-  "main": "vanilla-abide.js",
+  "main": "build/abide.js",
   "scripts": {
     "dev": "webpack-dev-server --config webpack-dev.js",
     "build": "webpack --config webpack-prod.js",
