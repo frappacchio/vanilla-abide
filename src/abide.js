@@ -8,11 +8,7 @@ class Abide {
    */
   constructor(element, options = {}) {
     this.element = element;
-    this.options = {
-      ...Abide.defaults,
-      ...options,
-    };
-
+    this.options = this.mergeDeep(Abide.defaults, options);
     this.className = 'Abide'; // ie9 back compat
     this.init();
   }
@@ -22,6 +18,39 @@ class Abide {
     return new Abide(element, options);
   }
 
+  /**
+   * Simple is object check.
+   * @param item
+   * @returns {boolean}
+   */
+  static isObject(item) {
+    return (item && typeof item === 'object' && !Array.isArray(item) && item !== null);
+  }
+
+  /**
+   * Deep merge two objects.
+   * @param target
+   * @param source
+   */
+  mergeDeep(target, source) {
+    if (Abide.isObject(target) && Abide.isObject(source)) {
+      Object.keys(source).forEach((key) => {
+        if (Abide.isObject(source[key])) {
+          if (!target[key]) {
+            Object.assign(target, {
+              [key]: {},
+            });
+          }
+          this.mergeDeep(target[key], source[key]);
+        } else {
+          Object.assign(target, {
+            [key]: source[key],
+          });
+        }
+      });
+    }
+    return target;
+  }
 
   /**
    * Initializes the Abide plugin and calls functions to get Abide functioning on load.
@@ -33,9 +62,9 @@ class Abide {
     const globalErrors = [].slice.call(this.element.querySelectorAll('[data-abide-error]'));
 
     // Add accessibility attributes to all fields
-    if (this.options.accessibilityAttributes) {
-      this.inputs.forEach(input => this.addAccessibilityAttributes(input));
-      globalErrors.forEach(error => this.addGlobalErrorForAccessibilityAttributes(error));
+    if (this.options.a11yAttributes) {
+      this.inputs.forEach(input => this.addA11yAttributes(input));
+      globalErrors.forEach(error => this.addGlobalErrorForA11yAttributes(error));
     }
 
     this.events();
@@ -192,19 +221,19 @@ class Abide {
    * @returns {Boolean} Boolean value depends on whether or not attribute is checked or empty
    */
   findRadioLabels(elements) {
-    const labels = elements.map((el) => {
+    const labels = elements.filter((element) => {
       const {
         id,
-      } = el;
+      } = element;
       let label = this.element.querySelector(`label[for="${id}"]`);
-
       if (!label) {
-        label = el.closest('label');
+        label = element.closest('label');
       }
-      return label;
+      if (label) {
+        return label;
+      }
     });
-
-    return [].slice.call(labels);
+    return labels;
   }
 
   /**
@@ -235,35 +264,39 @@ class Abide {
    * and [aria-describedby] attribute to element toward the first form error.
    * @param {Object} element - DOM Element
    */
-  addAccessibilityAttributes(element) {
+  addA11yAttributes(element) {
     const errors = this.findFormError(element);
     const labels = errors.filter(errorElement => errorElement.nodeName.toLowerCase() === 'label');
     const error = errors[0];
     if (!errors.length) return;
 
     // Set [aria-describedby] on the input toward the first form error if it is not set
-    if (typeof element.getAttribute('aria-describedby') === 'undefined') {
+    if (!element.hasAttribute('aria-describedby')) {
       // Get the first error ID or create one
-      let errorId = error.getAttribute('id');
-      if (typeof errorId === 'undefined') {
+      let errorId;
+      if (!error.hasAttribute('id')) {
         errorId = Abide.GetYoDigits(6, 'abide-error');
         error.setAttribute('id', errorId);
+      } else {
+        errorId = error.getAttribute('id');
       }
 
       element.setAttribute('aria-describedby', errorId);
     }
 
-    if (labels.filter('[for]').length < labels.length) {
+    if (labels.filter(labelElement => labelElement.hasAttribute('for')).length < labels.length) {
       // Get the input ID or create one
-      let elemId = element.getAttribute('id');
-      if (typeof elemId === 'undefined') {
+
+      let elemId;
+      if (!element.hasAttribute('id')) {
         elemId = Abide.GetYoDigits(6, 'abide-input');
         element.setAttribute('id', elemId);
+      } else {
+        elemId = element.getAttribute('id');
       }
-
       // For each label targeting element, set [for] if it is not set.
       labels.forEach((label) => {
-        if (typeof label.getAttribute('for') === 'undefined') {
+        if (!label.hasAttribute('for')) {
           label.setAttribute('for', elemId);
         }
       });
@@ -271,19 +304,19 @@ class Abide {
 
     // For each error targeting element, set [role=alert] if it is not set.
     errors.forEach((label) => {
-      if (typeof label.getAttribute('role') === 'undefined') {
+      if (!label.hasAttribute('role')) {
         label.setAttribute('role', 'alert');
       }
-    }).end();
+    });
   }
 
   /**
    * Adds [aria-live] attribute to the given global form error element.
    * @param {Object} element - DOM Element to add the attribute to
    */
-  addGlobalErrorForAccessibilityAttributes(element) {
-    if (typeof element.getAttribute('aria-live') === 'undefined') {
-      element.setAttribute('aria-live', this.options.accessibilityErrorLevel);
+  addGlobalErrorForA11yAttributes(element) {
+    if (!element.hasAttribute('aria-live')) {
+      element.setAttribute('aria-live', this.options.a11yErrorLevel);
     }
   }
 
@@ -294,12 +327,11 @@ class Abide {
    */
   removeRadioErrorClasses(groupName) {
     const elements = [].slice.call(this.element.querySelectorAll(`[type="radio"][name="${groupName}"]`));
-    const labels = this.findRadioLabels(elements);
 
+    const labels = this.findRadioLabels(elements);
     labels.forEach((label) => {
       label.classList.remove(this.options.labelErrorClass);
     });
-
 
     elements.forEach((element) => {
       const formErrors = this.findFormError(element);
@@ -390,7 +422,7 @@ class Abide {
 
     const goodToGo = [clearRequire, validated, customValidator, equalTo].indexOf(false) === -1;
 
-    if (goodToGo) {
+    if (goodToGo && element.hasAttribute('id')) {
       // Re-validate inputs that depend on this one with equalto
       const dependentElements = this.element.querySelectorAll(`[data-equalto="${element.getAttribute('id')}"]`);
       dependentElements.forEach((dependentElement) => {
@@ -419,12 +451,14 @@ class Abide {
     const noError = acc.indexOf(false) === -1;
 
     this.element.querySelectorAll('[data-abide-error]').forEach((element) => {
+      const tmpElement = element;
       // Ensure accessibility attributes are set
-      if (this.options.accessibilityAttributes) {
-        this.addGlobalErrorForAccessibilityAttributes(element);
+      if (this.options.a11yAttributes) {
+        this.addGlobalErrorForA11yAttributes(tmpElement);
       }
       // Show or hide the error
-      element.css('display', (noError ? 'none' : 'block'));
+      tmpElement.style.display = (noError ? 'none' : 'block');
+      // element.css('display', (noError ? 'none' : 'block'));
     });
 
     /**
@@ -624,12 +658,12 @@ Abide.defaults = {
    * If true, automatically insert when possible:
    * - `[aria-describedby]` on fields
    * - `[role=alert]` on form errors and `[for]` on form error labels
-   * - `[aria-live]` on global errors `[data-abide-error]` (see option `accessibilityErrorLevel`).
+   * - `[aria-live]` on global errors `[data-abide-error]` (see option `a11yErrorLevel`).
    * @option
    * @type {boolean}
    * @default true
    */
-  accessibilityAttributes: true,
+  a11yAttributes: true,
 
   /**
    * [aria-live] attribute value to be applied on global errors `[data-abide-error]`.
@@ -639,7 +673,7 @@ Abide.defaults = {
    * @type {string}
    * @default 'assertive'
    */
-  accessibilityErrorLevel: 'assertive',
+  a11yErrorLevel: 'assertive',
 
   /**
    * Set to true to validate text inputs on any value change.
