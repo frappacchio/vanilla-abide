@@ -11,10 +11,10 @@ import Abide from 'vanilla-abide';
 const myForm = document.querySelector('#my-form');
 const abideInstance = new Abide(myForm);
 
-form.addEventListener('formInvalid', (event) => {
+myForm.addEventListener('formInvalid', (event) => {
   //...
 });
-form.addEventListener('formValid', (event) => {
+myForm.addEventListener('formValid', (event) => {
   //...
 });
 ```
