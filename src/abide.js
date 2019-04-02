@@ -229,10 +229,20 @@ class Abide {
       if (!label) {
         label = element.closest('label');
       }
+      return label;
+    });
+    /* const labels = elements.forEach((element) => {
+      const {
+        id,
+      } = element;
+      let label = this.element.querySelector(`label[for="${id}"]`);
+      if (!label) {
+        label = element.closest('label');
+      }
       if (label) {
         return label;
       }
-    });
+    }); */
     return labels;
   }
 
