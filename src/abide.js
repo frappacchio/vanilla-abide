@@ -1,3 +1,5 @@
+import { mergeDeep, nodeListToArray } from './utils';
+
 class Abide {
   /**
    * Creates a new instance of Abide.
@@ -8,58 +10,19 @@ class Abide {
    */
   constructor(element, options = {}) {
     this.element = element;
-    this.options = this.mergeDeep(Abide.defaults, options);
+    this.options = mergeDeep(Abide.defaults, options);
     this.className = 'Abide'; // ie9 back compat
     this.init();
-  }
-
-
-  static factory(element, options) {
-    return new Abide(element, options);
-  }
-
-  /**
-   * Simple is object check.
-   * @param item
-   * @returns {boolean}
-   */
-  static isObject(item) {
-    return (item && typeof item === 'object' && !Array.isArray(item) && item !== null);
-  }
-
-  /**
-   * Deep merge two objects.
-   * @param target
-   * @param source
-   */
-  mergeDeep(target, source) {
-    if (Abide.isObject(target) && Abide.isObject(source)) {
-      Object.keys(source).forEach((key) => {
-        if (Abide.isObject(source[key])) {
-          if (!target[key]) {
-            Object.assign(target, {
-              [key]: {},
-            });
-          }
-          this.mergeDeep(target[key], source[key]);
-        } else {
-          Object.assign(target, {
-            [key]: source[key],
-          });
-        }
-      });
-    }
-    return target;
   }
 
   /**
    * Initializes the Abide plugin and calls functions to get Abide functioning on load.
    */
   init() {
-    const inputs = [].slice.call(this.element.querySelectorAll('input:not([type="submit"])'));
-    const selectAndTextArea = [].slice.call(this.element.querySelectorAll('textarea,select'));
+    const inputs = nodeListToArray(this.element.querySelectorAll('input:not([type="submit"])'));
+    const selectAndTextArea = nodeListToArray(this.element.querySelectorAll('textarea,select'));
     this.inputs = [...inputs, ...selectAndTextArea];
-    const globalErrors = [].slice.call(this.element.querySelectorAll('[data-abide-error]'));
+    const globalErrors = nodeListToArray(this.element.querySelectorAll('[data-abide-error]'));
 
     // Add accessibility attributes to all fields
     if (this.options.a11yAttributes) {
@@ -151,7 +114,7 @@ class Abide {
       sibling = sibling.nextSibling;
     }
     if (filter !== '') {
-      const filtered = [].slice.call(element.parentNode.querySelectorAll(filter));
+      const filtered = nodeListToArray(element.parentNode.querySelectorAll(filter));
       const matched = siblings.filter(x => filtered.includes(x));
       siblings = matched;
     }
@@ -178,7 +141,7 @@ class Abide {
     let error = Abide.siblings(element, this.options.formErrorSelector);
 
     if (!error.length) {
-      error = [].slice.call(element.parentNode.querySelectorAll(this.options.formErrorSelector));
+      error = nodeListToArray(element.parentNode.querySelectorAll(this.options.formErrorSelector));
     }
 
     if (id) {
@@ -231,18 +194,6 @@ class Abide {
       }
       return label;
     });
-    /* const labels = elements.forEach((element) => {
-      const {
-        id,
-      } = element;
-      let label = this.element.querySelector(`label[for="${id}"]`);
-      if (!label) {
-        label = element.closest('label');
-      }
-      if (label) {
-        return label;
-      }
-    }); */
     return labels;
   }
 
@@ -336,7 +287,7 @@ class Abide {
    *
    */
   removeRadioErrorClasses(groupName) {
-    const elements = [].slice.call(this.element.querySelectorAll(`[type="radio"][name="${groupName}"]`));
+    const elements = nodeListToArray(this.element.querySelectorAll(`[type="radio"][name="${groupName}"]`));
 
     const labels = this.findRadioLabels(elements);
     labels.forEach((label) => {
@@ -581,7 +532,7 @@ class Abide {
       node.classList.remove(this.options.formErrorClass);
     });
 
-    const abideErrors = [].slice.call(this.element.querySelectorAll('[data-abide-error]'));
+    const abideErrors = nodeListToArray(this.element.querySelectorAll('[data-abide-error]'));
     abideErrors.forEach((element) => {
       const fakeElement = element;
       fakeElement.style.display = 'none';
@@ -603,7 +554,7 @@ class Abide {
    * Removes error styles and classes from elements, without resetting their values.
    */
   destroy() {
-    [].slice.call(this.element.querySelectorAll('[data-abide-error]')).forEach((element) => {
+    nodeListToArray(this.element.querySelectorAll('[data-abide-error]')).forEach((element) => {
       const destroyElement = element;
       destroyElement.style.display = 'none';
     });
