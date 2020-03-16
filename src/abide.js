@@ -373,7 +373,9 @@ class Abide {
     }
 
     if (formError.length) {
-      formError.classList.remove(this.options.formErrorClass);
+      for (let i = 0; i < formError.length; i++) {
+        formError[i].classList.remove(this.options.formErrorClass);
+      }
     }
     element.classList.remove(this.options.inputErrorClass);
     element.removeAttribute('data-invalid');
