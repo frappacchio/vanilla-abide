@@ -171,7 +171,7 @@ describe('Abide', () => {
 
   describe('removeRadioErrorClasses()', () => {
     it('removes aria-invalid attribute from radio group', () => {
-      htmlString = '<form data-abide><input type="radio" name="groupName"></form>';
+      htmlString = '<form data-abide><input type="radio" name="groupName" id="test"><label for="test">Hello World</label></form>';
       document.querySelector('body').insertAdjacentHTML('beforeend', htmlString);
       myForm = document.querySelector('form');
       plugin = new Abide(myForm);
