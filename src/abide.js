@@ -221,7 +221,7 @@ class Abide {
    * @returns {Boolean} Boolean value depends on whether or not attribute is checked or empty
    */
   findRadioLabels(elements) {
-    const labels = elements.filter((element) => {
+    const labels = elements.map((element) => {
       const {
         id,
       } = element;
